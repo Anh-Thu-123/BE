@@ -2,6 +2,7 @@ package com.nagare.sales.model;
 
 import com.nagare.common.model.AuditableEntity;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -58,12 +59,12 @@ public class Booking extends AuditableEntity {
     public static class Pax {
         private String paxId;
         private String fullName;
-        private Instant dob;
+        private LocalDate dob;
         private String gender;
         private PaxType paxType;
         private boolean occupiesSeat = true;
         private String passportNo;
-        private Instant passportExpiry;
+        private LocalDate passportExpiry;
         private String nationality;
         private String dietary;
         private String note;
@@ -72,8 +73,8 @@ public class Booking extends AuditableEntity {
         public void setPaxId(String paxId) { this.paxId = paxId; }
         public String getFullName() { return fullName; }
         public void setFullName(String fullName) { this.fullName = fullName; }
-        public Instant getDob() { return dob; }
-        public void setDob(Instant dob) { this.dob = dob; }
+        public LocalDate getDob() { return dob; }
+        public void setDob(LocalDate dob) { this.dob = dob; }
         public String getGender() { return gender; }
         public void setGender(String gender) { this.gender = gender; }
         public PaxType getPaxType() { return paxType; }
@@ -82,8 +83,8 @@ public class Booking extends AuditableEntity {
         public void setOccupiesSeat(boolean occupiesSeat) { this.occupiesSeat = occupiesSeat; }
         public String getPassportNo() { return passportNo; }
         public void setPassportNo(String passportNo) { this.passportNo = passportNo; }
-        public Instant getPassportExpiry() { return passportExpiry; }
-        public void setPassportExpiry(Instant passportExpiry) { this.passportExpiry = passportExpiry; }
+        public LocalDate getPassportExpiry() { return passportExpiry; }
+        public void setPassportExpiry(LocalDate passportExpiry) { this.passportExpiry = passportExpiry; }
         public String getNationality() { return nationality; }
         public void setNationality(String nationality) { this.nationality = nationality; }
         public String getDietary() { return dietary; }

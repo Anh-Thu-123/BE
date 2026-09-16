@@ -1,7 +1,7 @@
 package com.nagare.hr.model;
 
 import com.nagare.common.model.AuditableEntity;
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -19,19 +19,19 @@ public class Employee extends AuditableEntity {
     private String phone;
     private String email;
     private List<String> languages; // vi|ja|en
-    private Instant joinedAt;
+    private LocalDate joinedAt;
     private Status status = Status.ACTIVE;
     private GuideProfile guideProfile;
 
     public static class GuideProfile {
         private String licenseNo;
-        private Instant licenseExpiry;
+        private LocalDate licenseExpiry;
         private List<String> specialties;
 
         public String getLicenseNo() { return licenseNo; }
         public void setLicenseNo(String licenseNo) { this.licenseNo = licenseNo; }
-        public Instant getLicenseExpiry() { return licenseExpiry; }
-        public void setLicenseExpiry(Instant licenseExpiry) { this.licenseExpiry = licenseExpiry; }
+        public LocalDate getLicenseExpiry() { return licenseExpiry; }
+        public void setLicenseExpiry(LocalDate licenseExpiry) { this.licenseExpiry = licenseExpiry; }
         public List<String> getSpecialties() { return specialties; }
         public void setSpecialties(List<String> specialties) { this.specialties = specialties; }
     }
@@ -52,8 +52,8 @@ public class Employee extends AuditableEntity {
     public void setEmail(String email) { this.email = email; }
     public List<String> getLanguages() { return languages; }
     public void setLanguages(List<String> languages) { this.languages = languages; }
-    public Instant getJoinedAt() { return joinedAt; }
-    public void setJoinedAt(Instant joinedAt) { this.joinedAt = joinedAt; }
+    public LocalDate getJoinedAt() { return joinedAt; }
+    public void setJoinedAt(LocalDate joinedAt) { this.joinedAt = joinedAt; }
     public Status getStatus() { return status; }
     public void setStatus(Status status) { this.status = status; }
     public GuideProfile getGuideProfile() { return guideProfile; }

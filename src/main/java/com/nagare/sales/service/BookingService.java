@@ -13,6 +13,7 @@ import com.nagare.scheduling.repo.DepartureRepository;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,8 +58,10 @@ public class BookingService {
         departure.setSeatsHeld(departure.getSeatsHeld() + (int) seatsNeeded);
         departureRepository.save(departure);
 
+        ensurePaxIds(booking.getPax());
         booking.setCode(sequenceGeneratorService.nextCode("BK"));
         booking.setKind(Booking.Kind.JOIN);
+        booking.setTourId(departure.getTourId());
         booking.setStatus(Booking.Status.HELD);
         booking.setHoldExpiresAt(Instant.now().plus(48, ChronoUnit.HOURS));
         capturePricing(booking, departure);
@@ -163,9 +166,19 @@ public class BookingService {
         }
         departureRepository.save(departure);
 
+        ensurePaxIds(newPaxList);
         booking.setPax(newPaxList);
         addTimeline(booking, "UPDATE_PAX", "Sua danh sach khach, chenh lech ghe: " + delta);
         return bookingRepository.save(booking);
+    }
+
+    /** Moi hanh khach co paxId rieng, khong bao gio tro bang vi tri mang (xem muc 05 / loi #06). */
+    private void ensurePaxIds(List<Booking.Pax> paxList) {
+        for (Booking.Pax pax : paxList) {
+            if (pax.getPaxId() == null || pax.getPaxId().isBlank()) {
+                pax.setPaxId(UUID.randomUUID().toString());
+            }
+        }
     }
 
     public Booking recordPayment(String bookingId, Booking.Payment payment) {

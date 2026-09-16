@@ -29,8 +29,10 @@ public class VisaCaseController {
         this.auditLogService = auditLogService;
     }
 
+    // Ma tran muc 04: GD chi xem (o), TK toan quyen (●). TPDH/HDV/CSKH/KH la "cua minh" (◑)
+    // va can loc theo pham vi rieng - chua co trong lan implement dau, ghi nhan la viec con lai.
     @GetMapping
-    @PreAuthorize("hasRole('SECRETARY')")
+    @PreAuthorize("hasAnyRole('SECRETARY', 'DIRECTOR')")
     public List<VisaCase> list(@RequestParam(required = false) String status) {
         List<VisaCase> cases = status != null
                 ? visaCaseRepository.findByStatus(VisaCase.Status.valueOf(status))

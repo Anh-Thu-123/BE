@@ -1,7 +1,7 @@
 package com.nagare.sales.model;
 
 import com.nagare.common.model.AuditableEntity;
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -17,7 +17,7 @@ public class Customer extends AuditableEntity {
     private String email;
     private String zalo;
     private String nationality;
-    private Instant dob;
+    private LocalDate dob;
     private String address;
     private Source source;
     private List<String> tags;
@@ -37,8 +37,8 @@ public class Customer extends AuditableEntity {
     public void setZalo(String zalo) { this.zalo = zalo; }
     public String getNationality() { return nationality; }
     public void setNationality(String nationality) { this.nationality = nationality; }
-    public Instant getDob() { return dob; }
-    public void setDob(Instant dob) { this.dob = dob; }
+    public LocalDate getDob() { return dob; }
+    public void setDob(LocalDate dob) { this.dob = dob; }
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
     public Source getSource() { return source; }
