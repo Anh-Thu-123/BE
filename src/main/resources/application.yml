@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: nagare-api
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/nagare}
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  jackson:
+    time-zone: ${TZ:Asia/Ho_Chi_Minh}
+
+server:
+  port: ${PORT:8080}
+
+app:
+  jwt-secret: ${JWT_SECRET:CHANGE_ME_IN_PRODUCTION_this_must_be_at_least_32_bytes_long}
+  allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000}
+  cloudinary-url: ${CLOUDINARY_URL:}
+  bootstrap-admin-user: ${BOOTSTRAP_ADMIN_USER:}
+  bootstrap-admin-password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+  cookie-domain: ${COOKIE_DOMAIN:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+logging:
+  level:
+    root: INFO
+    com.nagare: INFO

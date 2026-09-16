@@ -1,0 +1,16 @@
+# Cau hinh mau cho dev local. Chay: ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/nagare_local
+
+app:
+  jwt-secret: local-dev-secret-key-change-me-please-32-bytes-min
+  allowed-origins: http://localhost:3000
+  cloudinary-url: ""
+  bootstrap-admin-user: admin
+  bootstrap-admin-password: ChangeMe123!
+
+logging:
+  level:
+    com.nagare: DEBUG
