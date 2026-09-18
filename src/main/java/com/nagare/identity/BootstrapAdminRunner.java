@@ -38,15 +38,25 @@ public class BootstrapAdminRunner implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (userRepository.count() > 0) {
-            return; // da co du lieu, bo qua buoc bootstrap
+        // Kiem tra rieng vai tro DIRECTOR, khong phai tong so user: neu khach tu dang ky
+        // truoc khi bien BOOTSTRAP_ADMIN_USER/PASSWORD duoc cau hinh, dieu kien "count() > 0"
+        // se khoa vinh vien viec tao tai khoan Giam doc dau tien - day la loi thuc te gap phai
+        // khi trien khai (mot khach dang ky thu tren production truoc khi Render duoc cap bien).
+        if (userRepository.countByRole(Role.DIRECTOR) > 0) {
+            return; // da co Giam doc, bo qua buoc bootstrap
         }
         if (bootstrapUser.isBlank() || bootstrapPassword.isBlank()) {
             log.warn("Chua cau hinh BOOTSTRAP_ADMIN_USER/BOOTSTRAP_ADMIN_PASSWORD - bo qua tao tai khoan Giam doc dau tien.");
             return;
         }
+        String username = bootstrapUser.toLowerCase().trim();
+        if (userRepository.existsByUsername(username)) {
+            log.warn("Username '{}' da ton tai (vd. khach da dang ky trung ten) - khong the dung lam tai khoan "
+                    + "Giam doc khoi tao. Doi BOOTSTRAP_ADMIN_USER sang mot username khac roi deploy lai.", username);
+            return;
+        }
         User admin = new User();
-        admin.setUsername(bootstrapUser.toLowerCase().trim());
+        admin.setUsername(username);
         admin.setPasswordHash(passwordEncoder.encode(bootstrapPassword));
         admin.setRole(Role.DIRECTOR);
         admin.setStatus(UserStatus.ACTIVE);
