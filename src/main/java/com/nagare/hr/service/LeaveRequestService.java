@@ -56,7 +56,14 @@ public class LeaveRequestService {
             throw ApiException.forbidden("Khong the tu duyet don nghi phep cua chinh minh");
         }
 
-        Role expectedApprover = LeaveApprovalChain.approverRoleFor(approverUser.getRole(), requesterEmployee.getDepartment());
+        // BUG da sua: truoc day truyen nham role cua NGUOI DUYET vao day, trong khi ham can
+        // role cua NGUOI NOP DON de biet ho thuoc nhanh nao trong chuoi (vd. TPDH/TPMK/Thu ky
+        // deu di len Giam doc, con nhan vien thuong di theo phong ban) - lam moi luot duyet deu
+        // bi tu choi voi ly do "khong nam trong chuoi duyet" du dung nguoi.
+        Role requesterRole = requesterEmployee.getUserId() != null
+                ? userRepository.findById(requesterEmployee.getUserId()).map(User::getRole).orElse(null)
+                : null;
+        Role expectedApprover = LeaveApprovalChain.approverRoleFor(requesterRole, requesterEmployee.getDepartment());
         if (expectedApprover != null && approverUser.getRole() != expectedApprover && approverUser.getRole() != Role.DIRECTOR) {
             throw ApiException.forbidden("Ban khong nam trong chuoi duyet cua don nay");
         }

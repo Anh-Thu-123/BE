@@ -1,6 +1,9 @@
 package com.nagare.identity.web;
 
+import com.nagare.common.counter.SequenceGeneratorService;
 import com.nagare.common.error.ApiException;
+import com.nagare.hr.model.Employee;
+import com.nagare.hr.repo.EmployeeRepository;
 import com.nagare.identity.model.Role;
 import com.nagare.identity.model.User;
 import com.nagare.identity.model.UserStatus;
@@ -12,6 +15,7 @@ import java.util.Base64;
 import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 /** Cap va khoa tai khoan: chi Giam doc va Thu ky, theo ma tran phan quyen muc 04. */
@@ -21,17 +25,29 @@ import org.springframework.web.bind.annotation.*;
 public class AdminUserController {
 
     private final UserRepository userRepository;
+    private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
+    private final SequenceGeneratorService sequenceGeneratorService;
     private final SecureRandom random = new SecureRandom();
 
-    public AdminUserController(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthService authService) {
+    public AdminUserController(UserRepository userRepository, EmployeeRepository employeeRepository,
+                                PasswordEncoder passwordEncoder, AuthService authService,
+                                SequenceGeneratorService sequenceGeneratorService) {
         this.userRepository = userRepository;
+        this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
         this.authService = authService;
+        this.sequenceGeneratorService = sequenceGeneratorService;
     }
 
-    public record CreateUserRequest(@NotBlank String username, @NotBlank String role, String employeeId) {}
+    /**
+     * fullName/department bat buoc cho vai tro noi bo - muc 04 ghi ro "Thu ky tao tai khoan
+     * kem chuc danh va phong ban". employeeId chi dung khi cap tai khoan cho mot Employee
+     * co san (vi du cap lai sau khi mat tai khoan); binh thuong De trong de tao Employee moi.
+     */
+    public record CreateUserRequest(@NotBlank String username, @NotBlank String role, String employeeId,
+                                     String fullName, String position, String department, String phone) {}
     public record StatusRequest(@NotBlank String status) {}
     public record TempPasswordResponse(String username, String tempPassword) {}
 
@@ -40,7 +56,14 @@ public class AdminUserController {
         return userRepository.findAll();
     }
 
-    /** Sinh mat khau tam va bat mustChangePassword - khong co duong nao tu nang minh len vai tro noi bo. */
+    /**
+     * Sinh mat khau tam va bat mustChangePassword - khong co duong nao tu nang minh len vai tro noi bo.
+     * Tao dong thoi ho so Employee neu chua truyen employeeId co san, vi mot tai khoan noi bo
+     * khong co gi de hien thi/phan cong neu khong co ho so nhan su di kem (bug thuc te: truoc day
+     * fullName/department bi Jackson am tham bo qua vi CreateUserRequest khong co truong nay,
+     * nen GET /api/employees luon rong du da "cap tai khoan" cho ca chuc danh Van hanh).
+     */
+    @Transactional
     @PostMapping
     public TempPasswordResponse create(@org.springframework.web.bind.annotation.RequestBody CreateUserRequest req) {
         String username = req.username().toLowerCase().trim();
@@ -56,6 +79,26 @@ public class AdminUserController {
         if (role == Role.CUSTOMER) {
             throw ApiException.badRequest("INVALID_ROLE", "Khong cap tai khoan CUSTOMER qua duong nay");
         }
+
+        String employeeId = req.employeeId();
+        if ((employeeId == null || employeeId.isBlank()) && req.fullName() != null && !req.fullName().isBlank()) {
+            Employee employee = new Employee();
+            employee.setCode(sequenceGeneratorService.nextCode("NV"));
+            employee.setFullName(req.fullName());
+            employee.setPosition(req.position());
+            employee.setPhone(req.phone());
+            if (req.department() != null && !req.department().isBlank()) {
+                try {
+                    employee.setDepartment(Employee.Department.valueOf(req.department()));
+                } catch (IllegalArgumentException e) {
+                    throw ApiException.badRequest("INVALID_DEPARTMENT", "Phong ban khong hop le");
+                }
+            }
+            employee.setStatus(Employee.Status.ACTIVE);
+            employee = employeeRepository.save(employee);
+            employeeId = employee.getId();
+        }
+
         String tempPassword = generateTempPassword();
         User u = new User();
         u.setUsername(username);
@@ -63,8 +106,15 @@ public class AdminUserController {
         u.setRole(role);
         u.setStatus(UserStatus.ACTIVE);
         u.setMustChangePassword(true);
-        u.setEmployeeId(req.employeeId());
-        userRepository.save(u);
+        u.setEmployeeId(employeeId);
+        User saved = userRepository.save(u);
+
+        if (employeeId != null) {
+            employeeRepository.findById(employeeId).ifPresent(employee -> {
+                employee.setUserId(saved.getId());
+                employeeRepository.save(employee);
+            });
+        }
         return new TempPasswordResponse(username, tempPassword);
     }
 
