@@ -4,7 +4,7 @@ import com.nagare.common.audit.AuditLogService;
 import com.nagare.common.error.ApiException;
 import com.nagare.documents.model.VisaCase;
 import com.nagare.documents.repo.VisaCaseRepository;
-import com.nagare.documents.service.CloudinaryDocumentService;
+import com.nagare.documents.service.VisaDocumentStorageService;
 import com.nagare.identity.security.SecurityUtils;
 import java.time.Instant;
 import java.util.Comparator;
@@ -19,13 +19,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class VisaCaseController {
 
     private final VisaCaseRepository visaCaseRepository;
-    private final CloudinaryDocumentService cloudinaryDocumentService;
+    private final VisaDocumentStorageService visaDocumentStorageService;
     private final AuditLogService auditLogService;
 
-    public VisaCaseController(VisaCaseRepository visaCaseRepository, CloudinaryDocumentService cloudinaryDocumentService,
+    public VisaCaseController(VisaCaseRepository visaCaseRepository, VisaDocumentStorageService visaDocumentStorageService,
                                AuditLogService auditLogService) {
         this.visaCaseRepository = visaCaseRepository;
-        this.cloudinaryDocumentService = cloudinaryDocumentService;
+        this.visaDocumentStorageService = visaDocumentStorageService;
         this.auditLogService = auditLogService;
     }
 
@@ -44,7 +44,7 @@ public class VisaCaseController {
     public VisaCase uploadDocument(@PathVariable String id, @RequestParam String docType,
                                     @RequestParam MultipartFile file) throws java.io.IOException {
         VisaCase visaCase = visaCaseRepository.findById(id).orElseThrow(() -> ApiException.notFound("Ho so visa"));
-        String publicId = cloudinaryDocumentService.uploadPrivate(file, id);
+        String publicId = visaDocumentStorageService.uploadPrivate(file, id);
 
         VisaCase.DocumentItem item = new VisaCase.DocumentItem();
         item.setDocId(UUID.randomUUID().toString());
@@ -63,7 +63,7 @@ public class VisaCaseController {
         VisaCase.DocumentItem doc = visaCase.getDocuments().stream().filter(d -> d.getDocId().equals(docId))
                 .findFirst().orElseThrow(() -> ApiException.notFound("Tai lieu"));
         auditLogService.log("VIEW_DOCUMENT", "visaCases", id, "Xem tai lieu " + docId);
-        return cloudinaryDocumentService.signedUrl(doc.getPublicId());
+        return visaDocumentStorageService.signedUrl(doc.getPublicId());
     }
 
     public record StatusRequest(String status) {}
